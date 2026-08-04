@@ -1,14 +1,40 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "../auth/useAuth";
+import { useSocket } from "../auth/SocketContext";
 import AppLayout from "../components/layout/AppLayout";
+import { getMyNotificationsApi } from "../api/notification.api";
 
 function DashboardPage() {
   const { user } = useAuth();
+  const { latestNotification } = useSocket();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await getMyNotificationsApi();
+      const unread = res.data.notifications.filter((n) => !n.isRead).length;
+      setUnreadCount(unread);
+    } catch (error) {
+      // silently ignore, dashboard shouldn't break over this
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+  }, []);
+
+  // Refresh count whenever a new live notification arrives
+  useEffect(() => {
+    if (latestNotification) {
+      fetchUnreadCount();
+    }
+  }, [latestNotification]);
 
   const cards = [
     { label: "Your Role", value: user?.role, color: `var(--role-${user?.role})` },
     { label: "Status", value: "Active", color: "var(--color-sage)" },
-    { label: "Notifications", value: "0 unread", color: "var(--color-steel)" },
+    { label: "Notifications", value: `${unreadCount} unread`, color: "var(--color-steel)" },
   ];
 
   return (
