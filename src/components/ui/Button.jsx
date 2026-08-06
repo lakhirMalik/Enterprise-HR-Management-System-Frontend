@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-function Button({ children, variant = "primary", loading = false, ...props }) {
+function Button({ children, variant = "primary", loading = false, disabled = false, ...props }) {
   const styles = {
     primary: {
       background: "var(--color-ink)",
@@ -17,11 +17,13 @@ function Button({ children, variant = "primary", loading = false, ...props }) {
     },
   };
 
+  const isDisabled = loading || disabled;
+
   return (
     <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      disabled={loading}
+      whileHover={!isDisabled ? { scale: 1.02 } : {}}
+      whileTap={!isDisabled ? { scale: 0.98 } : {}}
+      disabled={isDisabled}
       style={{
         ...styles[variant],
         border: styles[variant].border || "none",
@@ -29,8 +31,8 @@ function Button({ children, variant = "primary", loading = false, ...props }) {
         padding: "12px 24px",
         fontSize: "14px",
         fontWeight: 600,
-        cursor: loading ? "default" : "pointer",
-        opacity: loading ? 0.7 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
+        opacity: isDisabled ? 0.5 : 1,
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",

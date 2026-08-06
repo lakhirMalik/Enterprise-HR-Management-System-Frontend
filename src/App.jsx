@@ -7,6 +7,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import TasksPage from "./pages/TasksPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import NotificationToast from "./components/ui/NotificationToast";
+import AttendancePage from "./pages/AttendancePage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
         <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
         <Route path="/" element={<h1>HR Management System</h1>} />
+        <Route path="/attendance" element={<ProtectedRoute><AttendancePage /></ProtectedRoute>} />
       </Routes>
       <NotificationToast />
     </>

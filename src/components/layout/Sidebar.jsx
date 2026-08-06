@@ -7,6 +7,7 @@ const navItems = [
   { label: "Leaves", path: "/leaves" },
   { label: "Tasks", path: "/tasks" },
   { label: "Notifications", path: "/notifications" },
+  { label: "Attendance", path: "/attendance" },
 ];
 
 function Sidebar() {
