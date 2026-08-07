@@ -7,7 +7,6 @@ import {
   getJobsApi,
   createJobApi,
   closeJobApi,
-  applyToJobApi,
   getMyApplicationsApi,
   getJobApplicationsApi,
   updateApplicationStatusApi,
@@ -82,15 +81,6 @@ function JobsPage() {
     fetchJobs();
   };
 
-  const handleApply = async (id) => {
-    try {
-      await applyToJobApi(id, { coverLetter: "" });
-      fetchMyApplications();
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to apply");
-    }
-  };
-
   const hasApplied = (jobId) => myApplications.some((a) => a.job?._id === jobId);
 
   const toggleApplicants = async (jobId) => {
@@ -115,7 +105,7 @@ function JobsPage() {
     <AppLayout>
       <h2 style={{ fontSize: "24px", marginBottom: "6px" }}>Open Positions</h2>
       <p style={{ color: "var(--color-text-muted)", fontSize: "14px", marginBottom: "32px" }}>
-        {canManage ? "Post and manage job openings." : "Browse and apply to open roles."}
+        {canManage ? "Post and manage job openings." : isCandidate ? "Head to the Careers page to apply." : "Browse open roles."}
       </p>
 
       {canManage && (
@@ -185,15 +175,8 @@ function JobsPage() {
                   </div>
                 </div>
 
-                {isCandidate && (
-                  <Button
-                    variant={hasApplied(job._id) ? "ghost" : "gold"}
-                    disabled={hasApplied(job._id)}
-                    onClick={() => handleApply(job._id)}
-                    style={{ width: "auto", padding: "8px 18px" }}
-                  >
-                    {hasApplied(job._id) ? "Applied" : "Apply"}
-                  </Button>
+                {isCandidate && hasApplied(job._id) && (
+                  <span style={{ fontSize: "12px", color: "var(--color-sage)", fontWeight: 600 }}>Applied</span>
                 )}
 
                 {canManage && (
@@ -221,34 +204,61 @@ function JobsPage() {
                   {(applicantsByJob[job._id] || []).length === 0 && (
                     <p style={{ fontSize: "13px", color: "var(--color-text-muted)" }}>No applicants yet.</p>
                   )}
-                  {(applicantsByJob[job._id] || []).map((app) => (
-                    <div key={app._id} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px", background: "var(--color-paper-dim)", borderRadius: "var(--radius-sm)" }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: "13px", fontWeight: 600 }}>{app.candidate?.name}</div>
-                        <div style={{ fontSize: "12px", color: "var(--color-text-muted)" }}>{app.candidate?.email}</div>
+                  {(applicantsByJob[job._id] || []).map((app) => {
+                    const resumeLink = app.resumeUrl ? "http://localhost:5000" + app.resumeUrl : null;
+                    return (
+                      <div key={app._id} style={{ padding: "12px", background: "var(--color-paper-dim)", borderRadius: "var(--radius-sm)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: "13px", fontWeight: 600 }}>{app.candidate?.name}</div>
+                            <div style={{ fontSize: "12px", color: "var(--color-text-muted)" }}>{app.candidate?.email}</div>
+                            {app.phone ? (
+                              <div style={{ fontSize: "12px", color: "var(--color-text-muted)" }}>{app.phone}</div>
+                            ) : null}
+                          </div>
+                          <select
+                            value={app.status}
+                            onChange={(e) => handleAppStatus(job._id, app._id, e.target.value)}
+                            style={{
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              padding: "4px 10px",
+                              borderRadius: "999px",
+                              border: "none",
+                              background: `color-mix(in srgb, ${appStatusColors[app.status]} 15%, white)`,
+                              color: appStatusColors[app.status],
+                              textTransform: "capitalize",
+                              cursor: "pointer",
+                            }}
+                          >
+                            <option value="submitted">Submitted</option>
+                            <option value="reviewing">Reviewing</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="rejected">Rejected</option>
+                          </select>
+                        </div>
+
+                        <div style={{ display: "flex", gap: "12px", marginTop: "8px", flexWrap: "wrap" }}>
+                          {resumeLink ? (
+                            <a href={resumeLink} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "var(--color-gold)", fontWeight: 600 }}>
+                              View Resume
+                            </a>
+                          ) : null}
+                          {app.portfolioUrl ? (
+                            <a href={app.portfolioUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "var(--color-steel)", fontWeight: 600 }}>
+                              Portfolio
+                            </a>
+                          ) : null}
+                        </div>
+
+                        {app.coverLetter ? (
+                          <p style={{ fontSize: "12px", color: "var(--color-text)", marginTop: "8px", lineHeight: 1.5 }}>
+                            {app.coverLetter}
+                          </p>
+                        ) : null}
                       </div>
-                      <select
-                        value={app.status}
-                        onChange={(e) => handleAppStatus(job._id, app._id, e.target.value)}
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          padding: "4px 10px",
-                          borderRadius: "999px",
-                          border: "none",
-                          background: `color-mix(in srgb, ${appStatusColors[app.status]} 15%, white)`,
-                          color: appStatusColors[app.status],
-                          textTransform: "capitalize",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <option value="submitted">Submitted</option>
-                        <option value="reviewing">Reviewing</option>
-                        <option value="accepted">Accepted</option>
-                        <option value="rejected">Rejected</option>
-                      </select>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </motion.div>
