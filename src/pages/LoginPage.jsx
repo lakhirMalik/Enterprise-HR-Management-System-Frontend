@@ -23,41 +23,41 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    try {
-      const data = await login({ email, password });
+  try {
+    const data = await login({ email, password });
 
-      if (data.twoFactorRequired) {
-        setTwoFAStep(true);
-        setTwoFAUserId(data.userId);
-        setTwoFAMethod(data.twoFactorMethod);
-      } else {
-        navigate("/dashboard");
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
+    if (data.twoFactorRequired) {
+      setTwoFAStep(true);
+      setTwoFAUserId(data.userId);
+      setTwoFAMethod(data.twoFactorMethod);
+    } else {
+      navigate(data.user?.role === "candidate" ? "/careers" : "/dashboard");
     }
-  };
+  } catch (err) {
+    setError(err.response?.data?.message || "Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleVerify = async (e) => {
-    e.preventDefault();
-    setError("");
-    setVerifyLoading(true);
+  e.preventDefault();
+  setError("");
+  setVerifyLoading(true);
 
-    try {
-      await completeTwoFactorLogin(twoFAUserId, code);
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err.response?.data?.message || "Invalid code");
-    } finally {
-      setVerifyLoading(false);
-    }
-  };
+  try {
+    const data = await completeTwoFactorLogin(twoFAUserId, code);
+    navigate(data.user?.role === "candidate" ? "/careers" : "/dashboard");
+  } catch (err) {
+    setError(err.response?.data?.message || "Invalid code");
+  } finally {
+    setVerifyLoading(false);
+  }
+};
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>

@@ -12,6 +12,10 @@ function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace />;
   }
 
+  if (user.role === "candidate") {
+    return <Navigate to="/careers" replace />;
+  }
+
   return children;
 }
 
