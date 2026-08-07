@@ -13,7 +13,13 @@ function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const [twoFAStep, setTwoFAStep] = useState(false);
+  const [twoFAUserId, setTwoFAUserId] = useState(null);
+  const [twoFAMethod, setTwoFAMethod] = useState(null);
+  const [code, setCode] = useState("");
+  const [verifyLoading, setVerifyLoading] = useState(false);
+
+  const { login, completeTwoFactorLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -22,8 +28,15 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      await login({ email, password });
-      navigate("/dashboard");
+      const data = await login({ email, password });
+
+      if (data.twoFactorRequired) {
+        setTwoFAStep(true);
+        setTwoFAUserId(data.userId);
+        setTwoFAMethod(data.twoFactorMethod);
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     } finally {
@@ -31,9 +44,23 @@ function LoginPage() {
     }
   };
 
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setError("");
+    setVerifyLoading(true);
+
+    try {
+      await completeTwoFactorLogin(twoFAUserId, code);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Invalid code");
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
-      {/* Brand panel */}
       <div
         style={{
           flex: "1 1 45%",
@@ -47,19 +74,11 @@ function LoginPage() {
           overflow: "hidden",
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <h1 style={{ fontSize: "24px", fontWeight: 700 }}>HR/OS</h1>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}>
           <h2 style={{ fontSize: "36px", lineHeight: 1.2, marginBottom: "16px", maxWidth: "420px" }}>
             Every role, one record.
           </h2>
@@ -67,7 +86,6 @@ function LoginPage() {
             Access, permissions, and approvals — organized the way your company actually works.
           </p>
 
-          {/* Signature: animated role stripes */}
           <div style={{ display: "flex", gap: "6px", marginTop: "32px" }}>
             {roleStripes.map((role, i) => (
               <motion.div
@@ -75,60 +93,68 @@ function LoginPage() {
                 initial={{ height: 0 }}
                 animate={{ height: "40px" }}
                 transition={{ duration: 0.4, delay: 0.4 + i * 0.08 }}
-                style={{
-                  width: "6px",
-                  background: `var(${role})`,
-                  borderRadius: "3px",
-                }}
+                style={{ width: "6px", background: `var(${role})`, borderRadius: "3px" }}
               />
             ))}
           </div>
         </motion.div>
 
-        <div style={{ fontSize: "12px", color: "rgba(247,247,245,0.4)" }}>
-          Enterprise HR Management System
-        </div>
+        <div style={{ fontSize: "12px", color: "rgba(247,247,245,0.4)" }}>Enterprise HR Management System</div>
       </div>
 
-      {/* Form panel */}
-      <div
-        style={{
-          flex: "1 1 55%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "var(--color-paper)",
-        }}
-      >
-        <motion.form
-          onSubmit={handleSubmit}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          style={{ width: "100%", maxWidth: "360px", padding: "24px" }}
-        >
-          <h2 style={{ fontSize: "22px", marginBottom: "6px" }}>Welcome back</h2>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "14px", marginBottom: "32px" }}>
-            Sign in to your account
-          </p>
+      <div style={{ flex: "1 1 55%", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-paper)" }}>
+        {!twoFAStep ? (
+          <motion.form
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            style={{ width: "100%", maxWidth: "360px", padding: "24px" }}
+          >
+            <h2 style={{ fontSize: "22px", marginBottom: "6px" }}>Welcome back</h2>
+            <p style={{ color: "var(--color-text-muted)", fontSize: "14px", marginBottom: "32px" }}>Sign in to your account</p>
 
-          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
-          {error && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              style={{ color: "var(--color-rust)", fontSize: "13px", marginBottom: "16px" }}
-            >
-              {error}
-            </motion.p>
-          )}
+            {error && (
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: "var(--color-rust)", fontSize: "13px", marginBottom: "16px" }}>
+                {error}
+              </motion.p>
+            )}
 
-          <Button type="submit" variant="gold" loading={loading}>
-            Sign in
-          </Button>
-        </motion.form>
+            <Button type="submit" variant="gold" loading={loading}>
+              Sign in
+            </Button>
+          </motion.form>
+        ) : (
+          <motion.form
+            onSubmit={handleVerify}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            style={{ width: "100%", maxWidth: "360px", padding: "24px" }}
+          >
+            <h2 style={{ fontSize: "22px", marginBottom: "6px" }}>Two-factor verification</h2>
+            <p style={{ color: "var(--color-text-muted)", fontSize: "14px", marginBottom: "32px" }}>
+              {twoFAMethod === "email"
+                ? "Enter the code we sent to your email."
+                : "Enter the code from your authenticator app."}
+            </p>
+
+            <Input label="6-digit code" value={code} onChange={(e) => setCode(e.target.value)} required />
+
+            {error && (
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: "var(--color-rust)", fontSize: "13px", marginBottom: "16px" }}>
+                {error}
+              </motion.p>
+            )}
+
+            <Button type="submit" variant="gold" loading={verifyLoading}>
+              Verify
+            </Button>
+          </motion.form>
+        )}
       </div>
     </div>
   );

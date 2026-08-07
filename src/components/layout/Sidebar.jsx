@@ -9,6 +9,7 @@ const navItems = [
   { label: "Notifications", path: "/notifications" },
   { label: "Attendance", path: "/attendance" },
   { label: "Jobs", path: "/jobs" },
+  { label: "Settings", path: "/settings" },
 ];
 
 function Sidebar() {
