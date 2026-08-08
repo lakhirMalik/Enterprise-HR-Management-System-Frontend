@@ -1,20 +1,25 @@
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
-
-const navItems = [
-  { label: "Dashboard", path: "/dashboard" },
-  { label: "Employees", path: "/employees" },
-  { label: "Leaves", path: "/leaves" },
-  { label: "Tasks", path: "/tasks" },
-  { label: "Notifications", path: "/notifications" },
-  { label: "Attendance", path: "/attendance" },
-  { label: "Jobs", path: "/jobs" },
-  { label: "Settings", path: "/settings" },
-];
+import { useAuth } from "../../auth/useAuth";
 
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+
+  const navItems = [
+    { label: "Dashboard", path: "/dashboard" },
+    { label: "Employees", path: "/employees" },
+    { label: "Leaves", path: "/leaves" },
+    { label: "Tasks", path: "/tasks" },
+    { label: "Attendance", path: "/attendance" },
+    { label: "Jobs", path: "/jobs" },
+    { label: "Notifications", path: "/notifications" },
+    ...(user?.role === "hr" || user?.role === "super_admin"
+      ? [{ label: "Audit Logs", path: "/audit-logs" }]
+      : []),
+    { label: "Settings", path: "/settings" },
+  ];
 
   return (
     <motion.div

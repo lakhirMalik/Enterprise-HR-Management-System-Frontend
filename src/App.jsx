@@ -12,6 +12,7 @@ import JobsPage from "./pages/JobsPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import NotificationToast from "./components/ui/NotificationToast";
+import AuditLogsPage from "./pages/AuditLogsPage";
 
 function App() {
   return (
@@ -29,6 +30,8 @@ function App() {
         <Route path="/jobs" element={<ProtectedRoute><JobsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/" element={<CareersPage />} />
+        <Route path="/audit-logs" element={<ProtectedRoute><AuditLogsPage /></ProtectedRoute>} />
+      
       </Routes>
       <NotificationToast />
     </>
