@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
 import Button from "../components/ui/Button";
 import { useAuth } from "../auth/useAuth";
-import { setup2FAEmailApi, verify2FAEmailApi } from "../api/settings.api";
+import { setup2FAEmailApi, verify2FAEmailApi, changePasswordApi } from "../api/settings.api";
 import {
   setup2FAApi,
   verify2FAApi,
@@ -28,7 +28,11 @@ function SettingsPage() {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [emailCodeSent, setEmailCodeSent] = useState(false);
   const [emailCode, setEmailCode] = useState("");
-  
+  const [currentPassword, setCurrentPassword] = useState("");
+const [newPassword, setNewPassword] = useState("");
+const [changePwLoading, setChangePwLoading] = useState(false);
+const [changePwMessage, setChangePwMessage] = useState("");
+const [changePwError, setChangePwError] = useState("");
   const fetchSessions = async () => {
     setLoadingSessions(true);
     try {
@@ -67,6 +71,23 @@ function SettingsPage() {
     setTwoFAMessage(err.response?.data?.message || "Failed to send code");
   } finally {
     setSetupLoading(false);
+  }
+};
+
+const handleChangePassword = async (e) => {
+  e.preventDefault();
+  setChangePwError("");
+  setChangePwMessage("");
+  setChangePwLoading(true);
+  try {
+    await changePasswordApi(currentPassword, newPassword);
+    setChangePwMessage("Password changed successfully");
+    setCurrentPassword("");
+    setNewPassword("");
+  } catch (err) {
+    setChangePwError(err.response?.data?.message || "Failed to change password");
+  } finally {
+    setChangePwLoading(false);
   }
 };
 
@@ -261,6 +282,55 @@ const handleVerifyEmail2FA = async (e) => {
           ))}
         </div>
       </motion.div>
+      {/* Change Password Section */}
+<motion.div
+  initial={{ opacity: 0, y: 12 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.05 }}
+  style={{
+    background: "white",
+    border: "1px solid var(--color-border)",
+    borderRadius: "var(--radius-md)",
+    padding: "24px",
+    marginBottom: "24px",
+    maxWidth: "480px",
+    boxShadow: "var(--shadow-sm)",
+  }}
+>
+  <h3 style={{ fontSize: "16px", marginBottom: "16px" }}>Change Password</h3>
+
+  <form onSubmit={handleChangePassword}>
+    <div style={{ marginBottom: "12px" }}>
+      <label style={{ fontSize: "12px", color: "var(--color-text-muted)" }}>Current password</label>
+      <input
+        type="password"
+        value={currentPassword}
+        onChange={(e) => setCurrentPassword(e.target.value)}
+        required
+        style={{ width: "100%", padding: "10px", border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)", marginTop: "4px" }}
+      />
+    </div>
+
+    <div style={{ marginBottom: "16px" }}>
+      <label style={{ fontSize: "12px", color: "var(--color-text-muted)" }}>New password</label>
+      <input
+        type="password"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+        required
+        minLength={6}
+        style={{ width: "100%", padding: "10px", border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)", marginTop: "4px" }}
+      />
+    </div>
+
+    {changePwMessage && <p style={{ color: "var(--color-sage)", fontSize: "13px", marginBottom: "12px" }}>{changePwMessage}</p>}
+    {changePwError && <p style={{ color: "var(--color-rust)", fontSize: "13px", marginBottom: "12px" }}>{changePwError}</p>}
+
+    <Button type="submit" variant="gold" loading={changePwLoading} style={{ width: "auto", padding: "10px 20px" }}>
+      Update password
+    </Button>
+  </form>
+</motion.div>
     </AppLayout>
   );
 }

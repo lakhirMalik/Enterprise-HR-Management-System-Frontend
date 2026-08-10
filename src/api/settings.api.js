@@ -1,5 +1,7 @@
 import axiosInstance from "./axiosInstance";
 
+export const changePasswordApi = (currentPassword, newPassword) =>
+  axiosInstance.post("/auth/change-password", { currentPassword, newPassword });
 export const setup2FAApi = () => axiosInstance.post("/auth/2fa/setup");
 export const verify2FAApi = (token) => axiosInstance.post("/auth/2fa/verify", { token });
 export const disable2FAApi = () => axiosInstance.post("/auth/2fa/disable");
