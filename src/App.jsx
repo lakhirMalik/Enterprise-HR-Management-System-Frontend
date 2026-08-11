@@ -13,7 +13,7 @@ import SettingsPage from "./pages/SettingsPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import NotificationToast from "./components/ui/NotificationToast";
 import AuditLogsPage from "./pages/AuditLogsPage";
-
+import LandingPage from "./pages/LandingPage";
 function App() {
   return (
     <>
@@ -21,6 +21,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/careers" element={<CareersPage />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/employees" element={<ProtectedRoute><EmployeesPage /></ProtectedRoute>} />
         <Route path="/leaves" element={<ProtectedRoute><LeavesPage /></ProtectedRoute>} />
